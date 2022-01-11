@@ -13,8 +13,8 @@
             </Menu.BitmapEffect>
             <MenuItem Header="_File">
                 <MenuItem Header="_Open" Click="MenuOpen_Click"/>
-                <MenuItem Header="_Close"/>
-                <MenuItem Header="_Save"/>
+                <MenuItem Header="_Close" IsEnabled="False" />
+                <MenuItem Header="_Save" IsEnabled="False"/>
             </MenuItem>
         </Menu>
         <TextBox Margin="10,45,10,10" TextWrapping="Wrap" Name="TextDataArea" Text="TextBox" AcceptsReturn="True" RenderTransformOrigin="0.5,0.5">
