@@ -22,12 +22,12 @@ namespace EncryptTextEditer_WPF
     public partial class MainWindow : Window
     {
         private string FileDefaultLocation = $"{DateTime.Now.ToString("yyyyMMdd")}.txt";
-        private string FolderDefaultLocation = @"c:\\temp\\";
+        private string FolderDefaultLocation = @"c:\temp\";
         private string FullDefaultLocation = string.Empty;
 
         public MainWindow()
         {
-            FullDefaultLocation = string.Concat(FileDefaultLocation, FolderDefaultLocation);
+            FullDefaultLocation = string.Concat(FolderDefaultLocation, FileDefaultLocation);
             InitializeComponent();
         }
 
@@ -58,10 +58,34 @@ namespace EncryptTextEditer_WPF
             }
             else
             {
-                MessageBox.Show("No data in file.", "Warning Message", MessageBoxButton.OK, MessageBoxImage.Warning);
+                StatusBar.Text = "No file found for todays date.";
+                
             }
         }
 
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text);
+        }
 
+        private void TextDataArea_Focus(object sender, RoutedEventArgs e)
+        {
+            StatusBar.Text = string.Empty;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text);
+            Close();
+        }
+
+        private void Options_Click(object sender, RoutedEventArgs e)
+        {
+            OptionsWindow optionsWindow = new OptionsWindow();
+            optionsWindow.Owner = this;
+            var resutls = optionsWindow.ShowDialog();
+
+           
+        }
     }
 }

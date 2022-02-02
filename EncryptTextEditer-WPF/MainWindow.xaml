@@ -13,11 +13,17 @@
             </Menu.BitmapEffect>
             <MenuItem Header="_File">
                 <MenuItem Header="_Open" Click="MenuOpen_Click"/>
-                <MenuItem Header="_Close" IsEnabled="False" />
-                <MenuItem Header="_Save" IsEnabled="False"/>
+                <MenuItem Header="_Save" Click="Save_Click"/>
+                <MenuItem Header="_Close" Click="Close_Click" />
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Options" Click="Options_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Help" IsEnabled="False">
+                
             </MenuItem>
         </Menu>
-        <TextBox Margin="10,45,10,10" TextWrapping="Wrap" Name="TextDataArea" Text="TextBox" AcceptsReturn="True" RenderTransformOrigin="0.5,0.5">
+        <TextBox GotFocus="TextDataArea_Focus"  Margin="10,27,10,22" TextWrapping="Wrap" Name="TextDataArea" Text="" AcceptsReturn="True" RenderTransformOrigin="0.5,0.5">
             <TextBox.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -26,5 +32,11 @@
                 </TransformGroup>
             </TextBox.RenderTransform>
         </TextBox>
+
+        <StatusBar Name="sbar" VerticalAlignment="Bottom" Background="Beige" >
+            <StatusBarItem>
+                <TextBlock Name="StatusBar"></TextBlock>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
