@@ -1,7 +1,10 @@
-﻿using EncryptTextEditerCL;
+﻿using EncryptTextEditer_WPF.Models;
+using EncryptTextEditerCL;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,19 +24,47 @@ namespace EncryptTextEditer_WPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string FileDefaultLocation = $"{DateTime.Now.ToString("yyyyMMdd")}.txt";
-        private string FolderDefaultLocation = @"c:\temp\";
+        private readonly string FolderDefaultLocation = System.IO.Directory.GetCurrentDirectory();
+        private readonly string FileDailyName = $"\\{DateTime.Now.ToString("yyyyMMdd")}.txt";
+        private readonly string FileOneTimeUseName = "\\textfile.txt";
+
         private string FullDefaultLocation = string.Empty;
+
+        private string OptionsFileLocation = System.IO.Directory.GetCurrentDirectory() + "\\options.txt";
+
+        private OptionModel option = new OptionModel();
 
         public MainWindow()
         {
-            FullDefaultLocation = string.Concat(FolderDefaultLocation, FileDefaultLocation);
             InitializeComponent();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadFile(FullDefaultLocation);
+            this.Title = $"Encrypt Text Editor - {Assembly.GetEntryAssembly().GetName().Version}";
+
+            if (System.IO.File.Exists(OptionsFileLocation).Equals(false))
+            {
+                OptionModel NewOptions = new OptionModel();
+
+                FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation, NewOptions);
+            }
+
+            option = FileIO.ReadFromBinaryFile<OptionModel>(OptionsFileLocation);
+
+            if (option.UseDailyFile)
+            {
+                FullDefaultLocation = string.Concat(FolderDefaultLocation, FileDailyName);
+
+                LoadFile(FullDefaultLocation);
+            }
+            else
+            {
+                FullDefaultLocation = string.Concat(FolderDefaultLocation, FileOneTimeUseName);
+                LoadFile(FullDefaultLocation); 
+            }
+
+            
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -43,9 +74,15 @@ namespace EncryptTextEditer_WPF
 
         private void MenuOpen_Click(object sender, RoutedEventArgs e)
         {
-            string fileLocation = FileIO.OpenFileDialog();
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            openFileDialog1.InitialDirectory = FolderDefaultLocation;
 
-            LoadFile(fileLocation);
+            if (openFileDialog1.ShowDialog() == true)
+            {
+                string fileLocation = openFileDialog1.FileName;
+
+                LoadFile(fileLocation);
+            }
         }
 
         private void LoadFile(string filelocation)
@@ -58,7 +95,7 @@ namespace EncryptTextEditer_WPF
             }
             else
             {
-                StatusBar.Text = "No file found for todays date.";
+                StatusBar.Text = "New file being used.";
                 
             }
         }
@@ -86,6 +123,13 @@ namespace EncryptTextEditer_WPF
             var resutls = optionsWindow.ShowDialog();
 
            
+        }
+
+        private void MenuAbout_Click(object sender, RoutedEventArgs e)
+        {
+            About about = new About();
+            about.Owner = this;
+            var resutls = about.ShowDialog();
         }
     }
 }

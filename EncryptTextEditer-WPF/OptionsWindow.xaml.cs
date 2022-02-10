@@ -22,7 +22,7 @@ namespace EncryptTextEditer_WPF
     public partial class OptionsWindow : Window
     {
 
-        private string OptionsFileLocation = System.IO.Directory.GetCurrentDirectory() + "options.txt";
+        private string OptionsFileLocation = DefaultSettingsModel.OptionsFileLocation;
 
         public OptionsWindow()
         {
@@ -36,35 +36,39 @@ namespace EncryptTextEditer_WPF
 
         private void OptionsSave_Click(object sender, RoutedEventArgs e)
         {
-            Option NewOptions = SetForm();
+            OptionModel NewOptions = SetForm();
 
-            FileIO.WriteToBinaryFile<Option>(OptionsFileLocation,NewOptions);
+            FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation,NewOptions);
         }
 
         private void Options_Loaded(object sender, RoutedEventArgs e)
         {
-            GetOptionValues();
+           GetOptionValues();
         }
 
-        private Option SetForm()
+        private OptionModel SetForm()
         {
-            Option option = new Option();
+            OptionModel option = new OptionModel();
 
-            option.UseOneFile = (bool)UseSingleFile.IsChecked ? true : false;
+            option.UseDailyFile = (bool)UseSingleFile.IsChecked ? true : false;
             option.CustomKey = CustomKey.Text;
 
             return option;
         }
 
-        private Option GetOptionValues()
+        private OptionModel GetOptionValues()
         {
-            Option CurrentOptions = FileIO.ReadFromBinaryFile<Option>(OptionsFileLocation);
+            OptionModel CurrentOptions = FileIO.ReadFromBinaryFile<OptionModel>(OptionsFileLocation);
 
-            UseSingleFile.IsChecked = CurrentOptions.UseOneFile;
+            UseSingleFile.IsChecked = CurrentOptions.UseDailyFile;
             CustomKey.Text = String.IsNullOrEmpty(CustomKey.Text) ? String.Empty : CurrentOptions.CustomKey;
 
             return CurrentOptions;
         }
 
+        private void CustomKey_Focus(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Changing encryption key could make you lose access old files.", "Change encryption key",MessageBoxButton.OK,MessageBoxImage.Warning);
+        }
     }
 }
