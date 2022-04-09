@@ -46,13 +46,23 @@ namespace EncryptTextEditerCL
 
         private static string MakeKey()
         {
-            string CryptKey = $"{Environment.MachineName}{Environment.UserDomainName}{Environment.UserName}"; // "b14ca5898a4e4133bbce2ea2315a1916";;
+            string CryptKey = string.Empty;
 
-            while (CryptKey.Length != 32)
+            if (string.IsNullOrEmpty(CryptKey))
             {
-                CryptKey += "a";
+                CryptKey = $"{Environment.MachineName}{Environment.UserDomainName}{Environment.UserName}"; // "b14ca5898a4e4133bbce2ea2315a1916";;
+
+                while (CryptKey.Length != 32)
+                {
+                    CryptKey += "a";
+                }
             }
 
+            return CryptKey;
+        }
+
+        public static string GetKey()
+        {
             return CryptKey;
         }
 
