@@ -39,6 +39,10 @@ namespace EncryptTextEditer_WPF
             OptionModel NewOptions = SetForm();
 
             FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation,NewOptions);
+
+            MessageBox.Show("Options Saved.");
+
+            this.Close();
         }
 
         private void Options_Loaded(object sender, RoutedEventArgs e)

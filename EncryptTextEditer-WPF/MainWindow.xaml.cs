@@ -42,11 +42,10 @@ namespace EncryptTextEditer_WPF
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.Title = $"Encrypt Text Editor - {Assembly.GetEntryAssembly().GetName().Version}";
+            OptionModel NewOptions = new OptionModel();
 
             if (System.IO.File.Exists(OptionsFileLocation).Equals(false))
             {
-                OptionModel NewOptions = new OptionModel();
-
                 FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation, NewOptions);
             }
 
@@ -64,11 +63,16 @@ namespace EncryptTextEditer_WPF
                 LoadFile(FullDefaultLocation); 
             }
 
+            if (string.IsNullOrEmpty(option.CustomKey)){
+                option.CustomKey = FileIO.GetKey();
+            }
+
             
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+
             FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text);
         }
 
