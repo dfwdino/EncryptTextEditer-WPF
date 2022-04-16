@@ -40,7 +40,7 @@ namespace EncryptTextEditer_WPF
 
             FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation,NewOptions);
 
-            MessageBox.Show("Options Saved.");
+            MessageBox.Show("Options Saved.","Options Settings",MessageBoxButton.OK,MessageBoxImage.Information);
 
             this.Close();
         }
