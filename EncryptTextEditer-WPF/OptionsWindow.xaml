@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EncryptTextEditer_WPF"
         mc:Ignorable="d"
-        Title="Options" Height="130" Width="247" Loaded="Options_Loaded">
-    <Grid>
+        Title="Options" Height="183" Width="250" Loaded="Options_Loaded">
+    <Grid Margin="0,9,0,-9">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="41*"/>
             <ColumnDefinition Width="29*"/>
@@ -16,10 +16,10 @@
         <TextBlock HorizontalAlignment="Left" Margin="10,35,0,0" TextWrapping="Wrap" Text="Custom Key:" VerticalAlignment="Top"/>
 
         <CheckBox Content="" HorizontalAlignment="Left" Margin="106,12,0,0" VerticalAlignment="Top" Name="UseSingleFile"/>
-        <TextBox GotFocus="CustomKey_Focus" HorizontalAlignment="Left" Margin="106,33,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Grid.ColumnSpan="2" Name="CustomKey"/>
+        <TextBox GotFocus="CustomKey_Focus" HorizontalAlignment="Left" Margin="106,0,0,49" TextWrapping="Wrap" Text="" Width="120" Grid.ColumnSpan="2" Name="CustomKey" Height="85" VerticalAlignment="Bottom"/>
 
-        <Button Content="Save" Click="OptionsSave_Click" HorizontalAlignment="Left" Margin="51,68,0,0" VerticalAlignment="Top" Grid.Column="1"/>
-        <Button Content="Cancel" Click="OptionsCancel_Click" HorizontalAlignment="Left" Margin="140,68,0,0" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Top"/>
+        <Button Content="Save" Click="OptionsSave_Click" HorizontalAlignment="Left" Margin="51,0,0,24" Grid.Column="1" Height="20" VerticalAlignment="Bottom"/>
+        <Button Content="Cancel" Click="OptionsCancel_Click" HorizontalAlignment="Left" Margin="140,0,0,24" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Bottom"/>
 
     </Grid>
 </Window>

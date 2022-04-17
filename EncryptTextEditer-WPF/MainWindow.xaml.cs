@@ -42,30 +42,34 @@ namespace EncryptTextEditer_WPF
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.Title = $"Encrypt Text Editor - {Assembly.GetEntryAssembly().GetName().Version}";
-            OptionModel NewOptions = new OptionModel();
+           
 
             if (System.IO.File.Exists(OptionsFileLocation).Equals(false))
             {
+                OptionModel NewOptions = new OptionModel();
+
+                NewOptions.UseDailyFile = false;
+                NewOptions.CustomKey = FileIO.GetKey();
+
                 FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation, NewOptions);
             }
-
-            option = FileIO.ReadFromBinaryFile<OptionModel>(OptionsFileLocation);
+            else
+            {
+                option = FileIO.ReadFromBinaryFile<OptionModel>(OptionsFileLocation);
+            }
 
             if (option.UseDailyFile)
             {
                 FullDefaultLocation = string.Concat(FolderDefaultLocation, FileDailyName);
 
-                LoadFile(FullDefaultLocation);
+                LoadFile(FullDefaultLocation, option.CustomKey);
             }
             else
             {
                 FullDefaultLocation = string.Concat(FolderDefaultLocation, FileOneTimeUseName);
-                LoadFile(FullDefaultLocation); 
+                LoadFile(FullDefaultLocation, option.CustomKey); 
             }
 
-            if (string.IsNullOrEmpty(option.CustomKey)){
-                option.CustomKey = FileIO.GetKey();
-            }
 
             
         }
@@ -85,13 +89,13 @@ namespace EncryptTextEditer_WPF
             {
                 string fileLocation = openFileDialog1.FileName;
 
-                LoadFile(fileLocation);
+                LoadFile(fileLocation,option.CustomKey);
             }
         }
 
-        private void LoadFile(string filelocation)
+        private void LoadFile(string filelocation,string key)
         {
-            string textfiledata = FileIO.LoadFile(FullDefaultLocation);
+            string textfiledata = FileIO.LoadFile(FullDefaultLocation,key);
 
             if (textfiledata.Length > 0)
             {

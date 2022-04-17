@@ -38,6 +38,9 @@ namespace EncryptTextEditer_WPF
         {
             OptionModel NewOptions = SetForm();
 
+            //Backing up old settings.  Mostly b/c of the key so you dont lose it.  Being lazy to back up the whole thing and not just the key.  :-)
+            System.IO.File.Move(OptionsFileLocation, OptionsFileLocation.Replace(".", $"{DateTime.Now.ToString("yyyyMMdd")}."));
+
             FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation,NewOptions);
 
             MessageBox.Show("Options Saved.","Options Settings",MessageBoxButton.OK,MessageBoxImage.Information);
@@ -65,7 +68,7 @@ namespace EncryptTextEditer_WPF
             OptionModel CurrentOptions = FileIO.ReadFromBinaryFile<OptionModel>(OptionsFileLocation);
 
             UseSingleFile.IsChecked = CurrentOptions.UseDailyFile;
-            CustomKey.Text = String.IsNullOrEmpty(CustomKey.Text) ? String.Empty : CurrentOptions.CustomKey;
+            CustomKey.Text = CurrentOptions.CustomKey;
 
             return CurrentOptions;
         }

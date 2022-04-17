@@ -19,7 +19,7 @@ namespace EncryptTextEditerCL
             System.IO.File.WriteAllText(location, EncrptedData);
         }
 
-        public static string LoadFile(string location)
+        public static string LoadFile(string location, string key)
         {
             string DecryptData = String.Empty;
 
@@ -27,7 +27,7 @@ namespace EncryptTextEditerCL
             {
                 string EncrptedData = System.IO.File.ReadAllText(location);
 
-                DecryptData = AesOperation.DecryptString(CryptKey, EncrptedData);
+                DecryptData = AesOperation.DecryptString(key, EncrptedData);
             }
 
             return DecryptData;
@@ -52,18 +52,47 @@ namespace EncryptTextEditerCL
             {
                 CryptKey = $"{Environment.MachineName}{Environment.UserDomainName}{Environment.UserName}"; // "b14ca5898a4e4133bbce2ea2315a1916";;
 
-                while (CryptKey.Length != 32)
-                {
-                    CryptKey += "a";
-                }
+                CryptKey += PrintRandom(32 - CryptKey.Length);
+               
             }
 
             return CryptKey;
         }
 
+        private static string PrintRandom(int RandomLength)
+        {
+            Random r = new Random();
+
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < RandomLength; i++)
+            {
+                // Decide whether to add an uppercase letter, a lowercase letter, or a number
+                int whichType = r.Next(0, 3);
+                switch (whichType)
+                {
+                    // Lower case letter
+                    case 0:
+                        sb.Append((char)(97 + r.Next(0, 26)));
+                        break;
+                    // Upper case letter
+                    case 1:
+                        sb.Append((char)(65 + r.Next(0, 26)));
+                        break;
+                    // Number
+                    case 2:
+                        sb.Append((char)(48 + r.Next(0, 10)));
+                        break;
+                }            }
+
+            return sb.ToString();
+        
+        }
+
         public static string GetKey()
         {
             return CryptKey;
+            
         }
 
 
