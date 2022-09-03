@@ -77,7 +77,7 @@ namespace EncryptTextEditer_WPF
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
 
-            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text);
+            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text, option.CustomKey);
         }
 
         private void MenuOpen_Click(object sender, RoutedEventArgs e)
@@ -110,7 +110,7 @@ namespace EncryptTextEditer_WPF
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text);
+            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text, option.CustomKey);
         }
 
         private void TextDataArea_Focus(object sender, RoutedEventArgs e)
@@ -120,7 +120,7 @@ namespace EncryptTextEditer_WPF
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text);
+            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text, option.CustomKey);
             Close();
         }
 

@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/EncryptTextEditer-WPF/textfile.txt
+/EncryptTextEditer-WPF/options.txt

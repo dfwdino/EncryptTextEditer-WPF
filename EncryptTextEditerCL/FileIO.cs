@@ -13,7 +13,7 @@ namespace EncryptTextEditerCL
     {
         private static string CryptKey = MakeKey();
 
-        public static void SaveFile(string location, string UnecryptedText)
+        public static void SaveFile(string location, string UnecryptedText, string CryptKey)
         {
             string EncrptedData = AesOperation.EncryptString(CryptKey, UnecryptedText);
 
