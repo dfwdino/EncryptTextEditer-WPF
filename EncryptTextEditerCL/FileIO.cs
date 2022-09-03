@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace EncryptTextEditerCL
 {
@@ -26,8 +27,13 @@ namespace EncryptTextEditerCL
             if (System.IO.File.Exists(location))
             {
                 string EncrptedData = System.IO.File.ReadAllText(location);
+                try
+                {
+                    DecryptData = AesOperation.DecryptString(key, EncrptedData);
+                }
 
-                DecryptData = AesOperation.DecryptString(key, EncrptedData);
+                catch (Exception ex) { MessageBox.Show($"Issue trying to decrypt file.  Error is {ex.Message}.  Program will not work."); }
+
             }
 
             return DecryptData;
@@ -53,7 +59,7 @@ namespace EncryptTextEditerCL
                 CryptKey = $"{Environment.MachineName}{Environment.UserDomainName}{Environment.UserName}"; // "b14ca5898a4e4133bbce2ea2315a1916";;
 
                 CryptKey += PrintRandom(32 - CryptKey.Length);
-               
+
             }
 
             return CryptKey;
@@ -83,16 +89,17 @@ namespace EncryptTextEditerCL
                     case 2:
                         sb.Append((char)(48 + r.Next(0, 10)));
                         break;
-                }            }
+                }
+            }
 
             return sb.ToString();
-        
+
         }
 
         public static string GetKey()
         {
             return CryptKey;
-            
+
         }
 
 
