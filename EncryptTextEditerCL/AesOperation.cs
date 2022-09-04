@@ -7,15 +7,14 @@ namespace EncryptTextEditerCL
 {
     public class AesOperation
     {
-        public static string EncryptString(string key, string plainText)
+        public static string EncryptString(string key,byte[] VI, string plainText)
         {
-            byte[] iv = { 12, 21, 43, 17, 57, 35, 67, 27, 12, 21, 43, 17, 57, 35, 67, 27 };
             byte[] array;
 
             using (Aes aes = Aes.Create())
             {
                 aes.Key = Encoding.UTF8.GetBytes(key);
-                aes.IV = iv ;
+                aes.IV = VI ;
                 ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 
                 using (MemoryStream memoryStream = new MemoryStream())
@@ -36,15 +35,14 @@ namespace EncryptTextEditerCL
             return Convert.ToBase64String(array);
         }
 
-        public static string DecryptString(string key, string cipherText)
+        public static string DecryptString(string key, byte[] VI, string cipherText)
         {
-            byte[] iv = { 12, 21, 43, 17, 57, 35, 67, 27, 12, 21, 43, 17, 57, 35, 67, 27 };
             byte[] buffer = Convert.FromBase64String(cipherText);
 
             using (Aes aes = Aes.Create())
             {
                 aes.Key = Encoding.UTF8.GetBytes(key);
-                aes.IV = iv;
+                aes.IV = VI;
                 
                 ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
 

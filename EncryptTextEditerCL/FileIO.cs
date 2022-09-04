@@ -12,15 +12,21 @@ namespace EncryptTextEditerCL
     public class FileIO
     {
         private static string CryptKey = MakeKey();
+        private static byte[] VI = MakeVI();
 
-        public static void SaveFile(string location, string UnecryptedText, string CryptKey)
+        private static byte[] MakeVI()
         {
-            string EncrptedData = AesOperation.EncryptString(CryptKey, UnecryptedText);
+            return Encoding.ASCII.GetBytes(PrintRandom(16));
+        }
+
+        public static void SaveFile(string location, string UnecryptedText, string CryptKey, byte[] VI)
+        {
+            string EncrptedData = AesOperation.EncryptString(CryptKey,VI, UnecryptedText);
 
             System.IO.File.WriteAllText(location, EncrptedData);
         }
 
-        public static string LoadFile(string location, string key)
+        public static string LoadFile(string location, string key, byte[] VI)
         {
             string DecryptData = String.Empty;
 
@@ -29,7 +35,7 @@ namespace EncryptTextEditerCL
                 string EncrptedData = System.IO.File.ReadAllText(location);
                 try
                 {
-                    DecryptData = AesOperation.DecryptString(key, EncrptedData);
+                    DecryptData = AesOperation.DecryptString(key,VI, EncrptedData);
                 }
 
                 catch (Exception ex) { MessageBox.Show($"Issue trying to decrypt file.  Error is {ex.Message}.  Program will not work."); }
@@ -99,6 +105,12 @@ namespace EncryptTextEditerCL
         public static string GetKey()
         {
             return CryptKey;
+
+        }
+
+        public static byte[] GetVI()
+        {
+            return VI;
 
         }
 

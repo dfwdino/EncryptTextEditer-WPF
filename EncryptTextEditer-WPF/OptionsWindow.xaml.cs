@@ -23,6 +23,7 @@ namespace EncryptTextEditer_WPF
     {
 
         private string OptionsFileLocation = DefaultSettingsModel.OptionsFileLocation;
+        private bool SawWarning = false;
 
         public OptionsWindow()
         {
@@ -59,6 +60,7 @@ namespace EncryptTextEditer_WPF
 
             option.UseDailyFile = (bool)UseSingleFile.IsChecked ? true : false;
             option.CustomKey = CustomKey.Text;
+            option.CustomVI =  Encoding.ASCII.GetBytes(CustomVI.Text);
 
             return option;
         }
@@ -69,13 +71,20 @@ namespace EncryptTextEditer_WPF
 
             UseSingleFile.IsChecked = CurrentOptions.UseDailyFile;
             CustomKey.Text = CurrentOptions.CustomKey;
+            CustomVI.Text = Encoding.ASCII.GetString(CurrentOptions.CustomVI);
 
             return CurrentOptions;
         }
 
         private void CustomKey_Focus(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Changing encryption key could make you lose access old files.", "Change encryption key",MessageBoxButton.OK,MessageBoxImage.Warning);
+            if (!SawWarning)
+            {
+                SawWarning = true;
+                MessageBox.Show("Changing encryption key could make you lose access old files.", "Change encryption key", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
+
     }
 }
+

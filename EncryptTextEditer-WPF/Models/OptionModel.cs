@@ -12,5 +12,7 @@ namespace EncryptTextEditer_WPF.Models
         public bool UseDailyFile {get;set;} = false;
 
         public string CustomKey { get; set; } = string.Empty;
+
+        public byte[] CustomVI = new byte[0];
     }
 }
