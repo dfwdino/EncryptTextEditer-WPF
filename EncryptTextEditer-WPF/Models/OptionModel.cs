@@ -9,7 +9,7 @@ namespace EncryptTextEditer_WPF.Models
     [Serializable]
     internal class OptionModel
     {
-        public bool UseDailyFile {get;set;} = false;
+        public bool UseDailyFile { get; set; } = false;
 
         public string CustomKey { get; set; } = string.Empty;
 

@@ -30,7 +30,8 @@ namespace EncryptTextEditer_WPF
 
         private string FullDefaultLocation = string.Empty;
 
-        private string OptionsFileLocation = System.IO.Directory.GetCurrentDirectory() + "\\options.txt";
+        private string OptionsFileLocation =
+            System.IO.Directory.GetCurrentDirectory() + "\\options.txt";
 
         private OptionModel option = new OptionModel();
 
@@ -42,7 +43,6 @@ namespace EncryptTextEditer_WPF
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.Title = $"Encrypt Text Editor - {Assembly.GetEntryAssembly().GetName().Version}";
-           
 
             if (System.IO.File.Exists(OptionsFileLocation).Equals(false))
             {
@@ -65,22 +65,26 @@ namespace EncryptTextEditer_WPF
             {
                 FullDefaultLocation = string.Concat(FolderDefaultLocation, FileDailyName);
 
-                LoadFile(FullDefaultLocation, option.CustomKey, option.CustomVI);
+                Parallel.Invoke(() =>
+                {
+                    LoadFile(FullDefaultLocation, option.CustomKey, option.CustomVI);
+                });
             }
             else
             {
                 FullDefaultLocation = string.Concat(FolderDefaultLocation, FileOneTimeUseName);
-                LoadFile(FullDefaultLocation, option.CustomKey, option.CustomVI); 
+                LoadFile(FullDefaultLocation, option.CustomKey, option.CustomVI);
             }
-
-
-            
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
-            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text, option.CustomKey, option.CustomVI);
+            FileIO.SaveFile(
+                FullDefaultLocation,
+                TextDataArea.Text,
+                option.CustomKey,
+                option.CustomVI
+            );
         }
 
         private void MenuOpen_Click(object sender, RoutedEventArgs e)
@@ -92,13 +96,13 @@ namespace EncryptTextEditer_WPF
             {
                 string fileLocation = openFileDialog1.FileName;
 
-                LoadFile(fileLocation,option.CustomKey, option.CustomVI);
+                LoadFile(fileLocation, option.CustomKey, option.CustomVI);
             }
         }
 
-        private void LoadFile(string filelocation,string key, byte[] VI)
+        private void LoadFile(string filelocation, string key, byte[] VI)
         {
-            string textfiledata = FileIO.LoadFile(FullDefaultLocation,key, VI);
+            string textfiledata = FileIO.LoadFile(FullDefaultLocation, key, VI);
 
             if (textfiledata.Length > 0)
             {
@@ -107,13 +111,17 @@ namespace EncryptTextEditer_WPF
             else
             {
                 StatusBar.Text = "New file being used.";
-                
             }
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text, option.CustomKey, option.CustomVI);
+            FileIO.SaveFile(
+                FullDefaultLocation,
+                TextDataArea.Text,
+                option.CustomKey,
+                option.CustomVI
+            );
         }
 
         private void TextDataArea_Focus(object sender, RoutedEventArgs e)
@@ -123,7 +131,12 @@ namespace EncryptTextEditer_WPF
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            FileIO.SaveFile(FullDefaultLocation, TextDataArea.Text, option.CustomKey,option.CustomVI);
+            FileIO.SaveFile(
+                FullDefaultLocation,
+                TextDataArea.Text,
+                option.CustomKey,
+                option.CustomVI
+            );
             Close();
         }
 
@@ -132,8 +145,6 @@ namespace EncryptTextEditer_WPF
             OptionsWindow optionsWindow = new OptionsWindow();
             optionsWindow.Owner = this;
             var resutls = optionsWindow.ShowDialog();
-
-           
         }
 
         private void MenuAbout_Click(object sender, RoutedEventArgs e)

@@ -1,10 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace EncryptTextEditerCL
@@ -19,9 +16,14 @@ namespace EncryptTextEditerCL
             return Encoding.ASCII.GetBytes(PrintRandom(16));
         }
 
-        public static void SaveFile(string location, string UnecryptedText, string CryptKey, byte[] VI)
+        public static void SaveFile(
+            string location,
+            string UnecryptedText,
+            string CryptKey,
+            byte[] VI
+        )
         {
-            string EncrptedData = AesOperation.EncryptString(CryptKey,VI, UnecryptedText);
+            string EncrptedData = AesOperation.EncryptString(CryptKey, VI, UnecryptedText);
 
             System.IO.File.WriteAllText(location, EncrptedData);
         }
@@ -35,25 +37,24 @@ namespace EncryptTextEditerCL
                 string EncrptedData = System.IO.File.ReadAllText(location);
                 try
                 {
-                    DecryptData = AesOperation.DecryptString(key,VI, EncrptedData);
+                    DecryptData = AesOperation.DecryptString(key, VI, EncrptedData);
                 }
-
-                catch (Exception ex) { MessageBox.Show($"Issue trying to decrypt file.  Error is {ex.Message}.  Program will not work."); }
-
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Issue trying to decrypt file.  Error is {ex.Message}.  Program will not work."
+                    );
+                }
             }
 
             return DecryptData;
-
-
         }
-
 
         public static string OpenFileDialog()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
 
             return openFileDialog.ShowDialog() == true ? openFileDialog.FileName : string.Empty;
-
         }
 
         private static string MakeKey()
@@ -62,10 +63,10 @@ namespace EncryptTextEditerCL
 
             if (string.IsNullOrEmpty(CryptKey))
             {
-                CryptKey = $"{Environment.MachineName}{Environment.UserDomainName}{Environment.UserName}"; // "b14ca5898a4e4133bbce2ea2315a1916";;
+                CryptKey =
+                    $"{Environment.MachineName}{Environment.UserDomainName}{Environment.UserName}"; // "b14ca5898a4e4133bbce2ea2315a1916";;
 
                 CryptKey += PrintRandom(32 - CryptKey.Length);
-
             }
 
             return CryptKey;
@@ -99,22 +100,17 @@ namespace EncryptTextEditerCL
             }
 
             return sb.ToString();
-
         }
 
         public static string GetKey()
         {
             return CryptKey;
-
         }
 
         public static byte[] GetVI()
         {
             return VI;
-
         }
-
-
 
         /// <summary>
         /// Writes the given object instance to a binary file.
@@ -125,11 +121,16 @@ namespace EncryptTextEditerCL
         /// <param name="filePath">The file path to write the object instance to.</param>
         /// <param name="objectToWrite">The object instance to write to the XML file.</param>
         /// <param name="append">If false the file will be overwritten if it already exists. If true the contents will be appended to the file.</param>
-        public static void WriteToBinaryFile<T>(string filePath, T objectToWrite, bool append = false)
+        public static void WriteToBinaryFile<T>(
+            string filePath,
+            T objectToWrite,
+            bool append = false
+        )
         {
             using (Stream stream = File.Open(filePath, append ? FileMode.Append : FileMode.Create))
             {
-                var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                var binaryFormatter =
+                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 binaryFormatter.Serialize(stream, objectToWrite);
             }
         }
@@ -144,10 +145,10 @@ namespace EncryptTextEditerCL
         {
             using (Stream stream = File.Open(filePath, FileMode.Open))
             {
-                var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                var binaryFormatter =
+                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 return (T)binaryFormatter.Deserialize(stream);
             }
-
         }
     }
 }

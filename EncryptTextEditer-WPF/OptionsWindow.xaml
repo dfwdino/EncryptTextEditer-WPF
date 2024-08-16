@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EncryptTextEditer_WPF"
         mc:Ignorable="d"
-        Title="Options" Height="230" Width="301" Loaded="Options_Loaded">
+        Title="Options" Height="252" Width="306" Loaded="Options_Loaded">
     <Grid Margin="0,9,0,-9">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="41*"/>
@@ -13,14 +13,14 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock HorizontalAlignment="Left" Margin="10,12,0,0" TextWrapping="Wrap" Text="Use Single File?:" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" Margin="10,0,0,110" TextWrapping="Wrap" Text="Custom Key:" Height="16" VerticalAlignment="Bottom"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,0,0,121" TextWrapping="Wrap" Text="Custom Key:" Height="16" VerticalAlignment="Bottom"/>
 
         <CheckBox Content="" HorizontalAlignment="Left" Margin="106,12,0,0" VerticalAlignment="Top" Name="UseSingleFile"/>
-        <TextBox GotFocus="CustomKey_Focus" HorizontalAlignment="Left" Margin="106,0,0,41" TextWrapping="Wrap" Text="" Width="120" Grid.ColumnSpan="2" 
+        <TextBox GotFocus="CustomKey_Focus" HorizontalAlignment="Left" Margin="106,0,0,52" TextWrapping="Wrap" Text="" Width="120" Grid.ColumnSpan="2" 
                  Name="CustomKey" Height="85" VerticalAlignment="Bottom"/>
 
-        <Button Content="Save" Click="OptionsSave_Click" HorizontalAlignment="Left" Margin="51,0,0,16" Grid.Column="1" Height="20" VerticalAlignment="Bottom"/>
-        <Button Content="Cancel" Click="OptionsCancel_Click" HorizontalAlignment="Left" Margin="140,0,0,16" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Bottom"/>
+        <Button Content="Save" Click="OptionsSave_Click" HorizontalAlignment="Left" Margin="51,0,0,27" Grid.Column="1" Height="20" VerticalAlignment="Bottom"/>
+        <Button Content="Cancel" Click="OptionsCancel_Click" HorizontalAlignment="Left" Margin="140,0,0,27" Height="20" VerticalAlignment="Bottom"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,42,0,0" TextWrapping="Wrap" Text="Custom VI:" VerticalAlignment="Top"/>
         <TextBox GotFocus="CustomKey_Focus" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="106,40,0,0" TextWrapping="Wrap" Text="" Width="120" Name="CustomVI" Height="18" VerticalAlignment="Top"/>
 
