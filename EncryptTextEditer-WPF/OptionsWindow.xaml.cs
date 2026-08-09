@@ -24,13 +24,22 @@ namespace EncryptTextEditer_WPF
         private string OptionsFileLocation = DefaultSettingsModel.OptionsFileLocation;
         private bool SawWarning = false;
 
-        public OptionsWindow()
+        private readonly OptionModel currentOption;
+        private readonly string masterPassword;
+
+        public OptionModel? UpdatedOption { get; private set; }
+
+        public OptionsWindow(OptionModel currentOption, string masterPassword)
         {
             InitializeComponent();
+
+            this.currentOption = currentOption;
+            this.masterPassword = masterPassword;
         }
 
         private void OptionsCancel_Click(object sender, RoutedEventArgs e)
         {
+            DialogResult = false;
             this.Close();
         }
 
@@ -39,12 +48,15 @@ namespace EncryptTextEditer_WPF
             OptionModel NewOptions = SetForm();
 
             //Backing up old settings.  Mostly b/c of the key so you dont lose it.  Being lazy to back up the whole thing and not just the key.  :-)
-            System.IO.File.Move(
+            System.IO.File.Copy(
                 OptionsFileLocation,
-                OptionsFileLocation.Replace(".", $"{DateTime.Now.ToString("yyyyMMdd")}.")
+                OptionsFileLocation.Replace(".", $"{DateTime.Now.ToString("yyyyMMdd")}."),
+                overwrite: true
             );
 
-            FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation, NewOptions);
+            FileIO.SaveVault<OptionModel>(OptionsFileLocation, masterPassword, NewOptions);
+
+            UpdatedOption = NewOptions;
 
             MessageBox.Show(
                 "Options Saved.",
@@ -53,12 +65,15 @@ namespace EncryptTextEditer_WPF
                 MessageBoxImage.Information
             );
 
+            DialogResult = true;
             this.Close();
         }
 
         private void Options_Loaded(object sender, RoutedEventArgs e)
         {
-            GetOptionValues();
+            UseSingleFile.IsChecked = currentOption.UseDailyFile;
+            CustomKey.Text = currentOption.CustomKey;
+            CustomVI.Text = Encoding.ASCII.GetString(currentOption.CustomVI);
         }
 
         private OptionModel SetForm()
@@ -70,19 +85,6 @@ namespace EncryptTextEditer_WPF
             option.CustomVI = Encoding.ASCII.GetBytes(CustomVI.Text);
 
             return option;
-        }
-
-        private OptionModel GetOptionValues()
-        {
-            OptionModel CurrentOptions = FileIO.ReadFromBinaryFile<OptionModel>(
-                OptionsFileLocation
-            );
-
-            UseSingleFile.IsChecked = CurrentOptions.UseDailyFile;
-            CustomKey.Text = CurrentOptions.CustomKey;
-            CustomVI.Text = Encoding.ASCII.GetString(CurrentOptions.CustomVI);
-
-            return CurrentOptions;
         }
 
         private void CustomKey_Focus(object sender, RoutedEventArgs e)

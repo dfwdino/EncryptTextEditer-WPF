@@ -1,8 +1,9 @@
-﻿using EncryptTextEditer_WPF.Models;
+using EncryptTextEditer_WPF.Models;
 using EncryptTextEditerCL;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -30,61 +31,35 @@ namespace EncryptTextEditer_WPF
 
         private string FullDefaultLocation = string.Empty;
 
-        private string OptionsFileLocation =
-            System.IO.Directory.GetCurrentDirectory() + "\\options.txt";
+        private OptionModel option;
+        private readonly string masterPassword;
 
-        private OptionModel option = new OptionModel();
-
-        public MainWindow()
+        public MainWindow(OptionModel option, string masterPassword)
         {
             InitializeComponent();
+
+            this.option = option;
+            this.masterPassword = masterPassword;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.Title = $"Encrypt Text Editor - {Assembly.GetEntryAssembly().GetName().Version}";
 
-            if (System.IO.File.Exists(OptionsFileLocation).Equals(false))
-            {
-                OptionModel NewOptions = new OptionModel();
+            FullDefaultLocation = string.Concat(
+                FolderDefaultLocation,
+                option.UseDailyFile ? FileDailyName : FileOneTimeUseName
+            );
 
-                NewOptions.UseDailyFile = false;
-                NewOptions.CustomKey = FileIO.GetKey();
-                NewOptions.CustomVI = FileIO.GetVI();
-
-                option = NewOptions;
-
-                FileIO.WriteToBinaryFile<OptionModel>(OptionsFileLocation, NewOptions);
-            }
-            else
-            {
-                option = FileIO.ReadFromBinaryFile<OptionModel>(OptionsFileLocation);
-            }
-
-            if (option.UseDailyFile)
-            {
-                FullDefaultLocation = string.Concat(FolderDefaultLocation, FileDailyName);
-
-                Parallel.Invoke(() =>
-                {
-                    LoadFile(FullDefaultLocation, option.CustomKey, option.CustomVI);
-                });
-            }
-            else
-            {
-                FullDefaultLocation = string.Concat(FolderDefaultLocation, FileOneTimeUseName);
-                LoadFile(FullDefaultLocation, option.CustomKey, option.CustomVI);
-            }
+            OpenFileInNewTab(FullDefaultLocation);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            FileIO.SaveFile(
-                FullDefaultLocation,
-                TextDataArea.Text,
-                option.CustomKey,
-                option.CustomVI
-            );
+            if (!SaveAllTabs())
+            {
+                e.Cancel = true;
+            }
         }
 
         private void MenuOpen_Click(object sender, RoutedEventArgs e)
@@ -96,32 +71,171 @@ namespace EncryptTextEditer_WPF
             {
                 string fileLocation = openFileDialog1.FileName;
 
-                LoadFile(fileLocation, option.CustomKey, option.CustomVI);
+                foreach (TabItem existingTab in EditorTabs.Items)
+                {
+                    if (
+                        existingTab.Tag is string existingPath
+                        && string.Equals(existingPath, fileLocation, StringComparison.OrdinalIgnoreCase)
+                    )
+                    {
+                        EditorTabs.SelectedItem = existingTab;
+                        return;
+                    }
+                }
+
+                OpenFileInNewTab(fileLocation);
             }
         }
 
-        private void LoadFile(string filelocation, string key, byte[] VI)
+        private void OpenFileInNewTab(string fileLocation)
         {
-            string textfiledata = FileIO.LoadFile(FullDefaultLocation, key, VI);
+            string textfiledata = FileIO.LoadFile(fileLocation, option.CustomKey, option.CustomVI);
 
-            if (textfiledata.Length > 0)
+            TextBox textBox = CreateEditorTextBox(textfiledata);
+
+            TabItem tab = new TabItem { Tag = fileLocation, Content = textBox };
+            tab.Header = BuildTabHeader(System.IO.Path.GetFileName(fileLocation), tab);
+
+            EditorTabs.Items.Add(tab);
+            EditorTabs.SelectedItem = tab;
+
+            StatusBar.Text = textfiledata.Length > 0 ? string.Empty : "New file being used.";
+        }
+
+        private void NewTab_Click(object sender, RoutedEventArgs e)
+        {
+            TextBox textBox = CreateEditorTextBox(string.Empty);
+
+            TabItem tab = new TabItem { Tag = null, Content = textBox };
+            tab.Header = BuildTabHeader("Untitled", tab);
+
+            EditorTabs.Items.Add(tab);
+            EditorTabs.SelectedItem = tab;
+        }
+
+        private TextBox CreateEditorTextBox(string text)
+        {
+            TextBox textBox = new TextBox
             {
-                TextDataArea.Text = textfiledata;
-            }
-            else
+                Text = text,
+                AcceptsReturn = true,
+                TextWrapping = TextWrapping.Wrap,
+            };
+            textBox.GotFocus += TextDataArea_Focus;
+            textBox.Loaded += (s, e) => textBox.Focus();
+
+            return textBox;
+        }
+
+        private object BuildTabHeader(string title, TabItem tab)
+        {
+            StackPanel panel = new StackPanel { Orientation = Orientation.Horizontal };
+
+            TextBlock text = new TextBlock
             {
-                StatusBar.Text = "New file being used.";
+                Text = title,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 6, 0),
+            };
+
+            Button closeButton = new Button
+            {
+                Content = "x",
+                Width = 16,
+                Height = 16,
+                Padding = new Thickness(0),
+                FontSize = 10,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            closeButton.Click += (s, e) => CloseTab(tab);
+
+            panel.Children.Add(text);
+            panel.Children.Add(closeButton);
+
+            return panel;
+        }
+
+        /// <summary>
+        /// Saves the tab's content. Returns false only when the tab needed a file location
+        /// (an "Untitled" tab) and the user cancelled the Save As dialog.
+        /// </summary>
+        private bool SaveTab(TabItem tab)
+        {
+            if (tab == null || !(tab.Content is TextBox textBox))
+            {
+                return true;
             }
+
+            string filePath = tab.Tag as string;
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    InitialDirectory = FolderDefaultLocation,
+                };
+
+                if (saveFileDialog.ShowDialog() != true)
+                {
+                    return false;
+                }
+
+                filePath = saveFileDialog.FileName;
+                tab.Tag = filePath;
+                tab.Header = BuildTabHeader(System.IO.Path.GetFileName(filePath), tab);
+            }
+
+            FileIO.SaveFile(filePath, textBox.Text, option.CustomKey, option.CustomVI);
+            return true;
+        }
+
+        /// <summary>
+        /// Saves every tab that has a file location, plus any "Untitled" tab that has content
+        /// (prompting for a location). Returns false if any such save was cancelled by the user.
+        /// </summary>
+        private bool SaveAllTabs()
+        {
+            bool allSaved = true;
+
+            foreach (TabItem tab in EditorTabs.Items)
+            {
+                if (!(tab.Content is TextBox textBox))
+                {
+                    continue;
+                }
+
+                bool hasFilePath = tab.Tag is string filePath && !string.IsNullOrEmpty(filePath);
+
+                if (hasFilePath || textBox.Text.Length > 0)
+                {
+                    if (!SaveTab(tab))
+                    {
+                        allSaved = false;
+                    }
+                }
+            }
+
+            return allSaved;
+        }
+
+        private void CloseTab(TabItem tab)
+        {
+            if (tab == null)
+            {
+                return;
+            }
+
+            if (!SaveTab(tab))
+            {
+                return;
+            }
+
+            EditorTabs.Items.Remove(tab);
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            FileIO.SaveFile(
-                FullDefaultLocation,
-                TextDataArea.Text,
-                option.CustomKey,
-                option.CustomVI
-            );
+            SaveTab(EditorTabs.SelectedItem as TabItem);
         }
 
         private void TextDataArea_Focus(object sender, RoutedEventArgs e)
@@ -131,20 +245,23 @@ namespace EncryptTextEditer_WPF
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            FileIO.SaveFile(
-                FullDefaultLocation,
-                TextDataArea.Text,
-                option.CustomKey,
-                option.CustomVI
-            );
+            CloseTab(EditorTabs.SelectedItem as TabItem);
+        }
+
+        private void Exit_Click(object sender, RoutedEventArgs e)
+        {
             Close();
         }
 
         private void Options_Click(object sender, RoutedEventArgs e)
         {
-            OptionsWindow optionsWindow = new OptionsWindow();
+            OptionsWindow optionsWindow = new OptionsWindow(option, masterPassword);
             optionsWindow.Owner = this;
-            var resutls = optionsWindow.ShowDialog();
+
+            if (optionsWindow.ShowDialog() == true && optionsWindow.UpdatedOption != null)
+            {
+                option = optionsWindow.UpdatedOption;
+            }
         }
 
         private void MenuAbout_Click(object sender, RoutedEventArgs e)

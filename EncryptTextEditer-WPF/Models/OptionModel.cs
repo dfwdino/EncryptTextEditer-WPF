@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace EncryptTextEditer_WPF.Models
 {
     [Serializable]
-    internal class OptionModel
+    public class OptionModel
     {
         public bool UseDailyFile { get; set; } = false;
 

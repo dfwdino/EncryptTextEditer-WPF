@@ -6,7 +6,7 @@
     <RootNamespace>EncryptTextEditer_WPF</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <AssemblyVersion>0.04.09.2022</AssemblyVersion>
+    <AssemblyVersion>1.08.09.2026</AssemblyVersion>
     <FileVersion>2</FileVersion>
   </PropertyGroup>
 

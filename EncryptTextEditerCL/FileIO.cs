@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 
@@ -8,6 +9,11 @@ namespace EncryptTextEditerCL
 {
     public class FileIO
     {
+        private static readonly byte[] VaultMarker = Encoding.ASCII.GetBytes("ETEVLT01");
+        private const int VaultPbkdf2Iterations = 100_000;
+        private const int VaultKeySize = 32;
+        private const int VaultIvSize = 16;
+        private const int VaultSaltSize = 16;
         private static string CryptKey = MakeKey();
         private static byte[] VI = MakeVI();
 
@@ -113,29 +119,6 @@ namespace EncryptTextEditerCL
         }
 
         /// <summary>
-        /// Writes the given object instance to a binary file.
-        /// <para>Object type (and all child types) must be decorated with the [Serializable] attribute.</para>
-        /// <para>To prevent a variable from being serialized, decorate it with the [NonSerialized] attribute; cannot be applied to properties.</para>
-        /// </summary>
-        /// <typeparam name="T">The type of object being written to the XML file.</typeparam>
-        /// <param name="filePath">The file path to write the object instance to.</param>
-        /// <param name="objectToWrite">The object instance to write to the XML file.</param>
-        /// <param name="append">If false the file will be overwritten if it already exists. If true the contents will be appended to the file.</param>
-        public static void WriteToBinaryFile<T>(
-            string filePath,
-            T objectToWrite,
-            bool append = false
-        )
-        {
-            using (Stream stream = File.Open(filePath, append ? FileMode.Append : FileMode.Create))
-            {
-                var binaryFormatter =
-                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                binaryFormatter.Serialize(stream, objectToWrite);
-            }
-        }
-
-        /// <summary>
         /// Reads an object instance from a binary file.
         /// </summary>
         /// <typeparam name="T">The type of object to read from the XML.</typeparam>
@@ -149,6 +132,152 @@ namespace EncryptTextEditerCL
                     new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 return (T)binaryFormatter.Deserialize(stream);
             }
+        }
+
+        /// <summary>
+        /// Returns true if the file at filePath is a plain (pre-vault) BinaryFormatter file
+        /// rather than a password-protected vault written by SaveVault.
+        /// </summary>
+        public static bool IsLegacyOptionsFile(string filePath)
+        {
+            try
+            {
+                ReadFromBinaryFile<object>(filePath);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Serializes objectToWrite and writes it to filePath encrypted with a key derived
+        /// from password via PBKDF2. Overwrites any existing file at filePath.
+        /// </summary>
+        public static void SaveVault<T>(string filePath, string password, T objectToWrite)
+        {
+            byte[] salt = RandomNumberGenerator.GetBytes(VaultSaltSize);
+            byte[] iv = RandomNumberGenerator.GetBytes(VaultIvSize);
+            byte[] key = DeriveVaultKey(password, salt);
+
+            byte[] plainBytes;
+            using (var memoryStream = new MemoryStream())
+            {
+                memoryStream.Write(VaultMarker, 0, VaultMarker.Length);
+                var binaryFormatter =
+                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                binaryFormatter.Serialize(memoryStream, objectToWrite);
+                plainBytes = memoryStream.ToArray();
+            }
+
+            byte[] cipherBytes;
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+
+                using (ICryptoTransform encryptor = aes.CreateEncryptor())
+                {
+                    cipherBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
+                }
+            }
+
+            using (Stream stream = File.Open(filePath, FileMode.Create))
+            using (var writer = new BinaryWriter(stream))
+            {
+                writer.Write(salt.Length);
+                writer.Write(salt);
+                writer.Write(iv.Length);
+                writer.Write(iv);
+                writer.Write(cipherBytes);
+            }
+        }
+
+        /// <summary>
+        /// Reads and decrypts a vault written by SaveVault. Throws WrongPasswordException
+        /// if password is incorrect.
+        /// </summary>
+        public static T OpenVault<T>(string filePath, string password)
+        {
+            byte[] salt;
+            byte[] iv;
+            byte[] cipherBytes;
+
+            try
+            {
+                using (Stream stream = File.Open(filePath, FileMode.Open))
+                using (var reader = new BinaryReader(stream))
+                {
+                    int saltLength = reader.ReadInt32();
+                    salt = reader.ReadBytes(saltLength);
+                    int ivLength = reader.ReadInt32();
+                    iv = reader.ReadBytes(ivLength);
+                    cipherBytes = reader.ReadBytes((int)(stream.Length - stream.Position));
+                }
+            }
+            catch (Exception ex) when (ex is IOException or ArgumentException or OverflowException)
+            {
+                throw new VaultCorruptException(ex);
+            }
+
+            byte[] key = DeriveVaultKey(password, salt);
+            byte[] plainBytes;
+
+            try
+            {
+                using (Aes aes = Aes.Create())
+                {
+                    aes.Key = key;
+                    aes.IV = iv;
+
+                    using (ICryptoTransform decryptor = aes.CreateDecryptor())
+                    {
+                        plainBytes = decryptor.TransformFinalBlock(
+                            cipherBytes,
+                            0,
+                            cipherBytes.Length
+                        );
+                    }
+                }
+            }
+            catch (CryptographicException)
+            {
+                throw new WrongPasswordException();
+            }
+
+            if (
+                plainBytes.Length < VaultMarker.Length
+                || !plainBytes.AsSpan(0, VaultMarker.Length).SequenceEqual(VaultMarker)
+            )
+            {
+                throw new WrongPasswordException();
+            }
+
+            try
+            {
+                using (var memoryStream = new MemoryStream(plainBytes, VaultMarker.Length, plainBytes.Length - VaultMarker.Length))
+                {
+                    var binaryFormatter =
+                        new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                    return (T)binaryFormatter.Deserialize(memoryStream);
+                }
+            }
+            catch (Exception ex) when (ex is not (WrongPasswordException or VaultCorruptException))
+            {
+                throw new VaultCorruptException(ex);
+            }
+        }
+
+        private static byte[] DeriveVaultKey(string password, byte[] salt)
+        {
+            return Rfc2898DeriveBytes.Pbkdf2(
+                password,
+                salt,
+                VaultPbkdf2Iterations,
+                HashAlgorithmName.SHA256,
+                VaultKeySize
+            );
         }
     }
 }
